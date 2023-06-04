@@ -1,5 +1,5 @@
 import {conexion} from '../db.js';
-
+//import { saveIngredientes } from "./Controllers/IngredientesController.js";
 export const getPociones = async (req,res) => {
     try{
         const {id} = req.params;
@@ -14,12 +14,17 @@ export const getPociones = async (req,res) => {
 
 export const savePociones = async(req,res) => {
     try {
-        const {nombre,descripcion,precio,cantidad,imagen,categoria} = req.body;
+        const {nombre,descripcion,precio,cantidad,imagen,categoria,ingredientes} = req.body;
+        let ingres ='';
+        ingredientes.forEach(ele => {
+            ingres += ele+',';
+        });
+        ingres = ingres.substring(0, ingres.length - 1);
         var validacion = validar(nombre,descripcion,precio);
         if(Object.entries(validacion).length === 0){
             await conexion.query(
-            'INSERT INTO pociones(nombre,descripcion,precio,cantidad,imagen,categoria) VALUES (?,?,?,?,?,?)',
-            [nombre,descripcion,precio,cantidad,null,categoria]);
+            'INSERT INTO pociones(nombre,descripcion,precio,cantidad,imagen,categoria,ingredientes) VALUES (?,?,?,?,?,?,?)',
+            [nombre,descripcion,precio,cantidad,null,categoria,ingres]);
             return res.status(200).json({status:true,message:'Poción guardada'});
         }
         else{
@@ -31,15 +36,19 @@ export const savePociones = async(req,res) => {
     }
 };
 export const updatePociones = async(req,res) => {
-    //console.log(req);
     try {
         const {id} = req.params;
-        const {nombre,descripcion,precio,cantidad,imagen,categoria} = req.body;
+        const {nombre,descripcion,precio,cantidad,imagen,categoria,ingredientes} = req.body;
+        let ingres ='';
+        ingredientes.forEach(ele => {
+            ingres += ele+',';
+        });
+        ingres = ingres.substring(0, ingres.length - 1);
         var validacion = validar(nombre,descripcion,precio);
         if(Object.entries(validacion).length === 0){
             const [result] = await conexion.query(
-            'UPDATE pociones SET nombre = ? , descripcion = ? , precio = ?, cantidad = ?, imagen = ?, categoria = ? WHERE id = ?',
-            [nombre,descripcion,precio,cantidad,null,categoria,id]);
+            'UPDATE pociones SET nombre = ? , descripcion = ? , precio = ?, cantidad = ?, imagen = ?, categoria = ?, ingredientes = ? WHERE id = ?',
+            [nombre,descripcion,precio,cantidad,null,categoria,ingres,id]);
             if(result.affectedRows === 0){
                 return res.status(404).json({status:'error',errors:[{id:'No existe el ID'}]});
             }
